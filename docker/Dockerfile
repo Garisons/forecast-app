@@ -24,7 +24,6 @@ php-xdebug \
 && apt-get install -y nodejs \
 
 && apt-get install -y git
-COPY php.ini-development /etc/php/8.0/fpm/php.ini
 COPY startup_script.sh ./
 RUN chmod a+x startup_script.sh
 CMD ./startup_script.sh
