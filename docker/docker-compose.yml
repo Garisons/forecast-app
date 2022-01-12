@@ -1,0 +1,29 @@
+version: '3'
+services:
+  forecast_app_db:
+    image: "postgres:13"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./forecast_app_db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=forecast_app
+  forecast_app_webserver:
+    image: nginx
+    volumes:
+      - ./webroot:/var/www/html
+      - ./sites-enabled:/etc/nginx/sites-enabled
+      - ./certs:/etc/ssl/private
+    command: /root/startup.sh
+    #extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+    ports:
+      - "80:80"
+      - "443:443"
+    build: .
+    depends_on:
+      - forecast_app_db
+volumes:
+  forecast_app_db_data:
