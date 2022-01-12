@@ -26,7 +26,5 @@ php-xdebug \
 && apt-get install -y nodejs \
 
 && apt-get install -y git
-COPY startup_script.sh ./
-RUN chmod a+x startup_script.sh
-CMD ./startup_script.sh
+COPY /nginx/default.conf /etc/nginx/sites-enabled
 WORKDIR /var/www/html/

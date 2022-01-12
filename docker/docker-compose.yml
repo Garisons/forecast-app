@@ -13,14 +13,11 @@ services:
   forecast_app_webserver:
     image: nginx
     volumes:
-      - ./webroot:/var/www/html
-      - ./sites-enabled:/etc/nginx/sites-enabled
-      - ./certs:/etc/ssl/private
-    command: /root/startup.sh
+      - ./../:/var/www/html
     #extra_hosts:
     #   - "host.docker.internal:host-gateway"
     ports:
-      - "8080:80"
+      - "8888:80"
     build: .
     depends_on:
       - forecast_app_db
