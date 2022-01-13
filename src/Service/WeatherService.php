@@ -49,20 +49,21 @@ class WeatherService
             ]),
             'appid' => self::API_KEY,
         ]);
+        $weatherArray = [];
         try {
             $weatherResponse = $this->client->request(
                 'GET',
                 self::API_HOST . '?' . $requestQuery,
             );
             $weatherArray = $weatherResponse->toArray();
-        } catch (Exception $e) {
-            $this->logger->info($e->getMessage());
-            $weatherArray = [];
-        } catch (TransportExceptionInterface $e) {
-        } catch (ClientExceptionInterface $e) {
-        } catch (DecodingExceptionInterface $e) {
-        } catch (RedirectionExceptionInterface $e) {
-        } catch (ServerExceptionInterface $e) {
+        } catch (
+            TransportExceptionInterface|
+            DecodingExceptionInterface|
+            ClientExceptionInterface|
+            RedirectionExceptionInterface|
+            ServerExceptionInterface $e
+        ) {
+            $this->logger->error($e->getMessage());
         }
         return $weatherArray;
     }

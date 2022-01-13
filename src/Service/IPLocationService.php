@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Entity\IPLocation;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpClient\CachingHttpClient;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpKernel\HttpCache\Store;
@@ -23,12 +25,15 @@ class IPLocationService
 
     private array $responseArray;
 
-    public function __construct()
+    private EntityManagerInterface $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
     {
         $store = new Store('/var/cache');
         $client = HttpClient::create();
         $client = new CachingHttpClient($client, $store);
         $this->client = $client;
+        $this->entityManager = $entityManager;
     }
 
     /**
@@ -38,8 +43,16 @@ class IPLocationService
      * @throws DecodingExceptionInterface
      * @throws ClientExceptionInterface
      */
-    public function getByIp(string $ip): ResponseInterface
+    public function getByIp(string $ip): array
     {
+        /** @var IPLocation $ipLocation */
+        $ipLocation = $this->entityManager
+            ->getRepository(IPLocation::class)
+            ->findOneBy(['ip' => $ip]);
+        if ($ipLocation) {
+            $this->responseArray = $ipLocation->getLocation();
+        }
+
         $ipRequestQuery = http_build_query([
             'access_key' => self::API_KEY,
         ]);
@@ -48,7 +61,14 @@ class IPLocationService
             self::API_HOST . $ip . '?' . $ipRequestQuery
         );
         $this->responseArray = $response->toArray();
-        return $response;
+
+        $location = new IPLocation();
+        $location->setIp($ip);
+        $location->setLocation($response->toArray());
+        $this->entityManager->persist($location);
+        $this->entityManager->flush();
+
+        return $this->responseArray;
     }
 
     /**
