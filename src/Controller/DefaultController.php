@@ -2,34 +2,51 @@
 
 namespace App\Controller;
 
+use App\Service\IPService;
+use Exception;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpClient\CachingHttpClient;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpCache\Store;
 use Symfony\Component\Routing\Annotation\Route;
-
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class DefaultController extends AbstractController
 {
     private HttpClientInterface $client;
 
-    public function __construct(HttpClientInterface $client)
+    private IPService $ip;
+
+    public function __construct(IPService $ip)
     {
+        $store = new Store('/var/cache');
+        $client = HttpClient::create();
+        $client = new CachingHttpClient($client, $store);
         $this->client = $client;
-        // $store = new Store('/var/cache/');
-        // $client = HttpClient::create();
-        // $this->client = new CachingHttpClient($client, $store);
+        $this->ip = $ip;
     }
 
+    /**
+     * @throws RedirectionExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
+     */
     #[Route('/', name: 'default')]
     public function index(LoggerInterface $logger): Response
     {
         $request = Request::createFromGlobals();
         $queryIp = $request->query->get('ip');
-        $ip = $queryIp ?? $request->getClientIp();
+        $ip = $queryIp ?? $this->ip->get($request);
 
         $ipLocationKey = 'ff0dc6aefeed23e9ed7517f34831efab';
         $ipRequestQuery = http_build_query([
@@ -55,11 +72,16 @@ class DefaultController extends AbstractController
             ]),
             'appid' => $weatherKey,
         ]);
-        $weatherRespone = $this->client->request(
-            'GET',
-            'https://api.openweathermap.org/data/2.5/onecall' . '?' . $requestQuery,
-        );
-        $weatherArray = $weatherRespone->toArray();
+        try {
+            $weatherResponse = $this->client->request(
+                'GET',
+                'https://api.openweathermap.org/data/2.5/onecall' . '?' . $requestQuery,
+            );
+            $weatherArray = $weatherResponse->toArray();
+        } catch (Exception $e) {
+            $logger->info($e->getMessage());
+            $weatherArray = [];
+        }
 
         $requestData = [
             // $statusCode,
