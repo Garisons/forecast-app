@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\IPLocationService;
 use App\Service\IPService;
 use Exception;
 use Psr\Log\LoggerInterface;
@@ -25,13 +26,16 @@ class DefaultController extends AbstractController
 
     private IPService $ip;
 
-    public function __construct(IPService $ip)
+    private IPLocationService $ipLocation;
+
+    public function __construct(IPService $ip, IPLocationService $ipLocation)
     {
         $store = new Store('/var/cache');
         $client = HttpClient::create();
         $client = new CachingHttpClient($client, $store);
         $this->client = $client;
         $this->ip = $ip;
+        $this->ipLocation = $ipLocation;
     }
 
     /**
@@ -48,15 +52,7 @@ class DefaultController extends AbstractController
         $queryIp = $request->query->get('ip');
         $ip = $queryIp ?? $this->ip->get($request);
 
-        $ipLocationKey = 'ff0dc6aefeed23e9ed7517f34831efab';
-        $ipRequestQuery = http_build_query([
-            'access_key' => $ipLocationKey,
-        ]);
-
-        $response = $this->client->request(
-            'GET',
-            'http://api.ipstack.com/' . $ip . '?' . $ipRequestQuery
-        );
+        $response = $this->ipLocation->getByIp($ip);
         $contentArray = $response->toArray();
         $latitude = $contentArray['latitude'];
         $longitude = $contentArray['longitude'];
