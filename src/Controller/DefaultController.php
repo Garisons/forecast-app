@@ -25,7 +25,7 @@ class DefaultController extends AbstractController
     }
 
     #[Route('/', name: 'default')]
-    public function index(): Response
+    public function index(LoggerInterface $logger): Response
     {
         $request = Request::createFromGlobals();
         $queryIp = $request->query->get('ip');
