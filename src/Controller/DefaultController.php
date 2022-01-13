@@ -52,10 +52,9 @@ class DefaultController extends AbstractController
         $queryIp = $request->query->get('ip');
         $ip = $queryIp ?? $this->ip->get($request);
 
-        $response = $this->ipLocation->getByIp($ip);
-        $contentArray = $response->toArray();
-        $latitude = $contentArray['latitude'];
-        $longitude = $contentArray['longitude'];
+        $this->ipLocation->getByIp($ip);
+        $latitude = $this->ipLocation->getLatitude();
+        $longitude = $this->ipLocation->getLongitude();
 
         $weatherKey = '75644221927cf43372e9901b8ab3fce1';
         $requestQuery = http_build_query([
