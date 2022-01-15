@@ -1,6 +1,7 @@
 version: '3'
 services:
   forecast_app_db:
+    container_name: forecast_app_db
     image: "postgres:13"
     ports:
       - "5432:5432"
@@ -12,9 +13,10 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=forecast_app
   forecast_app_webserver:
+    container_name: forecast_app_webserver
     image: nginx
     volumes:
-      - ./../:/var/www/html
+      - ./../app/:/var/www/html
     #extra_hosts:
     #   - "host.docker.internal:host-gateway"
     ports:
