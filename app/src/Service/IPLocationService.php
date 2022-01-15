@@ -28,7 +28,9 @@ class IPLocationService
 
     public function __construct(EntityManagerInterface $entityManager)
     {
-        $store = new Store('/var/cache');
+        $store = new Store('../var/cache123');
+//        var_dump($store);
+//        die;
         $client = HttpClient::create();
         $client = new CachingHttpClient($client, $store);
         $this->client = $client;
@@ -50,6 +52,7 @@ class IPLocationService
             ->findOneBy(['ip' => $ip]);
         if ($ipLocation) {
             $this->responseArray = $ipLocation->getLocation();
+            return $this->responseArray;
         }
 
         $ipRequestQuery = http_build_query([

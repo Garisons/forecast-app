@@ -6,6 +6,8 @@ use App\Service\IPLocationService;
 use App\Service\IPService;
 use App\Service\WeatherService;
 use App\Service\WeatherServiceConfig;
+use Doctrine\DBAL\ConnectionException;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -45,7 +47,14 @@ class DefaultController extends AbstractController
         $queryIp = $request->query->get('ip');
         $ip = $queryIp ?? $this->ip->get($request);
 
-        $this->ipLocation->getByIp($ip);
+        try {
+            $this->ipLocation->getByIp($ip);
+        }
+        catch (Exception $e) {
+            return $this->json([
+                'error' => $e->getMessage(),
+            ]);
+        }
         $weatherServiceConfig = new WeatherServiceConfig();
         $weatherServiceConfig->latitude = $this->ipLocation->getLatitude();
         $weatherServiceConfig->longitude = $this->ipLocation->getLongitude();

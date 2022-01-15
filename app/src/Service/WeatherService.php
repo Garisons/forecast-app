@@ -29,7 +29,7 @@ class WeatherService
     {
         $this->config = $config;
         $this->logger = $logger;
-        $store = new Store('/var/cache');
+        $store = new Store('../var/cache123');
         $client = HttpClient::create();
         $client = new CachingHttpClient($client, $store);
         $this->client = $client;
@@ -56,6 +56,10 @@ class WeatherService
                 self::API_HOST . '?' . $requestQuery,
             );
             $weatherArray = $weatherResponse->toArray();
+
+            echo '<pre>';
+            var_dump($weatherArray);
+            die;
         } catch (
             TransportExceptionInterface|
             DecodingExceptionInterface|
