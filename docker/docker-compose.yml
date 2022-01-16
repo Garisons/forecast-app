@@ -7,7 +7,6 @@ services:
       - "5432:5432"
     volumes:
       - ./forecast_app_db_data:/var/lib/postgresql/data
-      - ./nginx:/etc/nginx/conf.d
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -17,6 +16,7 @@ services:
     image: nginx
     volumes:
       - ./../app/:/var/www/html
+      - ./nginx:/etc/nginx/conf.d
     #extra_hosts:
     #   - "host.docker.internal:host-gateway"
     ports:
