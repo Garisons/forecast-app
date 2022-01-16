@@ -22,5 +22,8 @@ php-xdebug \
 && apt-get install -y nodejs \
 && apt-get install -y git
 COPY /nginx/default.conf /etc/nginx/sites-enabled
-RUN service php8.0-fpm start
 WORKDIR /var/www/html/
+ADD start.sh /start.sh
+RUN chmod 755 /start.sh
+CMD /start.sh
+
