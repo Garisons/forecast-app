@@ -46,7 +46,11 @@ class DefaultController extends AbstractController
         $request = Request::createFromGlobals();
         $queryIp = $request->query->get('ip');
         $ip = $queryIp ?? $this->ip->get($request);
-
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return $this->json([
+                'error' => 'Can\'t use local or private ip, e.g. http://forecast.local.io:8888/?ip=8.8.8.8'
+            ]);
+        }
         try {
             $this->ipLocation->getByIp($ip);
         }
